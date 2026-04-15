@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<sub-flow name="com-auditError"
+		doc:id="463ad703-d703-437f-93f0-789f90b4f494">
+		<choice doc:name="Choice"
+			doc:id="b6126299-1750-4f65-b296-939b9a286947">
+			<when expression='vars.com_serviceStatus == null'>
+				<set-variable
+					value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	serviceName: "unknown",&#10;	serviceType: "api"&#10;}]'
+					doc:name="setService"
+					doc:id="0fe57f4b-b7e3-4247-a518-edecccdemob64d"
+					variableName="com_setContext_in" />
+				<flow-ref doc:name="setContext"
+					doc:id="0022a61e-f8f8-4e30-ae6e-be99596d21ac" name="com-setContext" />
+			</when>
+		</choice>
+		<choice doc:name="Choice"
+			doc:id="d509579f-faf4-4dff-a488-e01e4a52440d">
+			<when expression='vars.com_serviceStatus == "init"'>
+				<flow-ref doc:name="com-logStart"
+					doc:id="5e238ed1-9b49-4d9f-abc0-4e0ca10cdfbd" name="com-logStart" />
+			</when>
+		</choice>
+		<flow-ref doc:name="com-logError"
+			doc:id="ddemod0417-8a95-45e2-b49b-60c569015b67" name="com-logError" />
+		<flow-ref doc:name="com-logErrorWarning" doc:id="ccb482d7-5644-47fa-8ffa-2d5fe940cbd2" name="com-logErrorWarning" />
+		<flow-ref doc:name="com-logAudit" doc:id="a1250705-6a7c-476d-a1ad-1b739d379ac7" name="com-logAudit" />
+		<flow-ref doc:name="com-logEnd" doc:id="b695b4d2-7de6-4bab-9659-5ace27aa0c7f" name="com-logEnd" />
+	</sub-flow>
+
+</mule>

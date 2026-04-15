@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+
+	<sub-flow name="com-setContext">
+		<ee:transform doc:name="SetContext"
+			doc:id="c7e15d1c-2948-4aa2-8bb0-694d34c131bb">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="com_serviceContext"><![CDATA[%dw 2.0
+output application/java
+---
+{		
+		applicationName: p('application.name'),
+		applicationInstance: if(p('application.instance')!=null)
+			p('application.instance')
+		else
+			'-',		
+		applicationVersion: p('application.version'),
+		serviceName: vars.com_setContext_in.serviceName,
+		serviceType: vars.com_setContext_in.serviceType,
+		env: p('deploy.env')
+}]]></ee:set-variable>
+				<ee:set-variable variableName="com_serviceStatus"><![CDATA[%dw 2.0
+output application/java
+---
+"init"]]></ee:set-variable>
+				<ee:set-variable variableName="com_messagePayload"><![CDATA[%dw 2.0
+output application/java
+---
+if (vars.com_serviceMetadata.LogPayloadLogic != null and vars.com_serviceMetadata.LogPayloadLogic != 'NEVER')
+	payload
+else 
+	if ( p('common.audit.defaultLogPayloadLogic') != 'NEVER')
+		payload
+	else '']]></ee:set-variable>
+				<ee:set-variable
+					variableName="com_messageProperties"><![CDATA[%dw 2.0
+output application/java
+---
+attributes]]></ee:set-variable>
+				<ee:set-variable variableName="com_LogPayloadLogic"><![CDATA[%dw 2.0
+output application/java
+---
+if (vars.com_serviceMetadata.LogPayloadLogic?)
+	vars.com_serviceMetadata.LogPayloadLogic
+else 
+	p('common.audit.defaultLogPayloadLogic') as String]]></ee:set-variable>
+				<ee:set-variable variableName="com_tracking"><![CDATA[%dw 2.0
+output application/java
+
+var msgCorrelationId = if(attributes == null) null 
+	else (
+		if (attributes..'x-correlation-id'[0] != null) attributes..'x-correlation-id'[0]
+		else
+			attributes..'x_correlation_id'[0]
+	)
+
+var newTransaction = 
+	(
+		msgCorrelationId == null 
+		or
+		vars.com_setContext_in.isRootTransaction == "true"
+	) as Boolean
+---
+{
+	correlationId: if (newTransaction)
+		(java!java::util::UUID::randomUUID() as String) replace /-/ with ''
+	else if (vars.com_setContext_in.overwriteCorrelationId != null)
+		vars.com_setContext_in.overwriteCorrelationId
+	else msgCorrelationId,
+	
+	serviceId: (java!java::util::UUID::randomUUID() as String) replace /-/ with '',
+	
+	(isRootTransaction: 'true') if(newTransaction),
+	(
+		transactionName: if(vars.com_setContext_in.overwriteTransactionName?)
+			vars.com_setContext_in.overwriteTransactionName
+		else
+			'tx.' ++ (vars.com_setContext_in.serviceName as String)
+	) if(newTransaction)
+}
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<remove-variable doc:name="Remove Variable"
+			doc:id="b2ac46c8-b2ca-4ab3-a87c-2faae1804e57"
+			variableName="com_serviceMetadata" />
+
+	</sub-flow>
+	<sub-flow name="com-logStart"
+		doc:id="5ec25a67-1b1c-4ff0-b002-6386037e3381">
+		<set-variable value="running"
+			doc:name="com_serviceStatus"
+			doc:id="10aebfbd-facd-4ae7-b47e-0a523b185a09"
+			variableName="com_serviceStatus" />
+		<choice doc:name="Choice"
+			doc:id="b40e041f-30aa-480f-ae87-a1c773e568ed">
+			<when expression="${common.audit.role.logStart}">
+				<ee:transform doc:name="MapLog"
+					doc:id="014e3a0f-bcd4-425e-9eb9-7cdemo641cedd1">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="com_logStart"><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+[
+	{
+		"tracking": vars.com_tracking,
+		"serviceContext": vars.com_serviceContext,
+		  
+		serviceStatus: vars.com_serviceStatus,
+		
+		log:
+			{
+		
+				logTimestamp: now() as String { format: "yyyy-MM-dd'T'HH:mm:ss.SSSZ" },
+				logRole: "INFO",
+				logStep:"START",
+				logText:"Service started.",
+				
+			},
+		(businessKeys: vars.com_logStart_in.businessKeys) if(vars.com_logStart_in.businessKeys?),
+		messageProperties: vars.com_messageProperties,
+		
+		(messagePayload: vars.com_messagePayload) if(vars.com_LogPayloadLogic == 'ALWAYS'),
+			
+	}
+]]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="LogStart"
+					doc:id="abe7bbea-c542-413f-9f6d-b730aaf00960"
+					message="#[vars.com_logStart]" category="comon.audit.logger" />
+				<remove-variable doc:name="Remove com_logStart"
+					doc:id="cbcd910f-13f7-4d48-a920-867db1cb02bf"
+					variableName="com_logStart" />
+			</when>
+		</choice>
+	</sub-flow>
+	<sub-flow name="com-logEnd"
+		doc:id="ac918314-9fdb-46d9-aca6-a88aeb873fd4">
+		<set-variable value="completed"
+			doc:name="com_serviceStatus"
+			doc:id="7b95bd52-cfac-4657-b283-784a3f33b242"
+			variableName="com_serviceStatus" />
+		<choice doc:name="Choice"
+			doc:id="eb54f7cc-cec7-4f85-ac2f-830d0d786475">
+			<when expression="${common.audit.role.logEnd}">
+				<ee:transform doc:name="MapLog"
+					doc:id="b40702c7-56c9-4645-aa0b-d8d898262468">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="com_logEnd"><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+[
+	{
+		"tracking": vars.com_tracking,
+		"serviceContext": vars.com_serviceContext,
+	    
+		serviceStatus: vars.com_serviceStatus,
+		
+		log:
+			{
+				logTimestamp: now() as String { format: "yyyy-MM-dd'T'HH:mm:ss.SSSZ" },
+				logRole: "INFO",
+				logStep:"END",
+				logText:"Service completed."
+			},
+		(businessKeys: vars.com_logEnd_in.businessKeys) if(vars.com_logEnd_in.businessKeys?)
+		
+	}
+]]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="LogEnd"
+					doc:id="0b3e428d-031b-4dc1-83d6-3493de537c68"
+					message="#[vars.com_logEnd]" category="comon.audit.logger" />
+				<remove-variable doc:name="Remove com_logEnd"
+					doc:id="e976e0c1-6359-4567-afe3-4f7638fe0923"
+					variableName="com_logEnd" />
+			</when>
+		</choice>
+	</sub-flow>
+	<sub-flow name="com-logError"
+		doc:id="37b7875d-d870-47df-9f84-e48a8a68c478">
+		<set-variable
+			value="#[if (vars.com_exception.isNonFatal == 'true')
+	'running'
+else 
+	'error']"
+			doc:name="com_serviceStatus"
+			doc:id="c4d02838-ee76-4d02-afc7-79dab4790225"
+			variableName="com_serviceStatus" />
+		<choice doc:name="Choice"
+			doc:id="2d55c2c2-b5bf-41a8-bb75-84efe2412470">
+			<when expression="${common.audit.role.logError}">
+				<ee:transform doc:name="MapLog"
+					doc:id="f4ebd3b1-9f57-4e6d-a70c-63da21cb212f">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="com_logError"><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+[
+	{
+		
+		"tracking": vars.com_tracking,
+		"serviceContext": vars.com_serviceContext,
+		
+		serviceStatus: vars.com_serviceStatus,
+		log:
+			{
+				logTimestamp: now() as String { format: "yyyy-MM-dd'T'HH:mm:ss.SSSZ" },
+				logRole: "ERROR",
+				logStep:"ERROR",
+				logText: vars.com_exception.errorDescription,
+				error: vars.com_exception
+			},
+		(messagePayload: vars.com_messagePayload) if(vars.com_LogPayloadLogic == 'ONERROR')
+	}
+]
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="ERROR" doc:name="LogError"
+					doc:id="e88e9990-8a74-4477-985a-cde55e18ec3d"
+					message="#[vars.com_logError]" category="comon.audit.logger" />
+			</when>
+		</choice>
+		<remove-variable doc:name="Remove com_logError"
+			doc:id="394a4cda-0bf8-4c23-93b2-098a9664d884"
+			variableName="com_logError" />
+	</sub-flow>
+	<sub-flow name="com-logAudit"
+		doc:id="02891890-880c-47b6-ab7a-16403030567d">
+		<choice doc:name="Choice"
+			doc:id="b190c0c4-3992-4903-9641-73a41bb86da1">
+			<when
+				expression="((vars.com_logAudit_in.logRole == 'INFO' or vars.com_logAudit_in.logRole==null) and ${common.audit.role.logInfo}) or (vars.com_logAudit_in.logRole == 'WARNING' and ${common.audit.role.logWarning}) or (vars.com_logAudit_in.logRole == 'ERROR' and ${common.audit.role.logError}) or (vars.com_logAudit_in.logRole == 'DEBUG' and ${common.audit.role.logDebug})">
+				<ee:transform doc:name="MapLog"
+					doc:id="99604849-9f0f-4a17-8420-3419e5d84889">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="com_logAudit"><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+[
+	{
+		"tracking": vars.com_tracking,
+		"serviceContext": vars.com_serviceContext,
+		serviceStatus: vars.com_serviceStatus,
+		
+		log:
+			{
+				logTimestamp: now() as String { format: "yyyy-MM-dd'T'HH:mm:ss.SSSZ" },
+				
+				logRole: if (vars.com_logAudit_in.logRole?)
+					vars.com_logAudit_in.logRole
+				else
+					'INFO',
+			
+				logStep: if (vars.com_logAudit_in.logStep?)
+					vars.com_logAudit_in.logStep
+				else
+					'AUDIT',
+				(logText: vars.com_logAudit_in.logText) if(vars.com_logAudit_in.logText?),
+				
+				(logLongText: vars.com_logAudit_in.logLongText) if(vars.com_logAudit_in.logLongText?)
+				
+			},
+		(businessKeys: vars.com_logAudit_in.businessKeys) if(vars.com_logAudit_in.businessKeys?)
+	}
+]
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger"
+					doc:id="f072d0ed-6789-49b4-9b1c-06e08490d997"
+					message="#[vars.com_logAudit]" category="comon.audit.logger" />
+				<remove-variable doc:name="Remove com_logAudit"
+					doc:id="c99feedc-7e08-4838-ab2a-b93675a3a850"
+					variableName="com_logAudit" />
+			</when>
+		</choice>
+	</sub-flow>
+	<sub-flow name="com-logErrorWarning"
+		doc:id="6c7671a5-28e9-4885-88fa-2a31a9ac299b">
+		<choice doc:name="Choice"
+			doc:id="87d2bd02-26e4-42bd-bc10-8341384d2872">
+			<when expression="${common.audit.role.logWarning}">
+				<ee:transform doc:name="MapLog"
+					doc:id="baa46bb8-a9f1-4d32-bf91-3d2fa43f6d24">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="com_logError"><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+[
+	{
+		
+		"tracking": vars.com_tracking,
+		"serviceContext": vars.com_serviceContext,
+		
+		serviceStatus: vars.com_serviceStatus,
+		log:
+			{
+				logTimestamp: now() as String { format: "yyyy-MM-dd'T'HH:mm:ss.SSSZ" },
+				logRole: "WARNING",
+				logStep:"AUDIT",
+				logText: vars.com_exception.errorDescription,
+				error: vars.com_exception
+			},
+		(messagePayload: vars.com_messagePayload) if(vars.com_LogPayloadLogic == 'ONERROR')
+	}
+]
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="ERROR" doc:name="LogErrorWarning"
+					doc:id="547b0e5a-3ba4-4459-b79e-8c0734e5038b"
+					message="#[vars.com_logError]" category="comon.audit.logger" />
+			</when>
+		</choice>
+		<remove-variable doc:name="Remove com_logError"
+			doc:id="5669936d-172b-44f7-918f-943f691b86c5"
+			variableName="com_logError" />
+	</sub-flow>
+
+</mule>

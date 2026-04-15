@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+
+
+	<sub-flow name="mule-common-logger-subflow">
+		<ee:transform doc:name="Compose The Logging Message"
+			doc:id="07b49b7a-620e-470a-a30b-4c997b828619">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="commonLogMsg"><![CDATA[%dw 2.0
+output application/json
+---
+{
+	 // Name of the application
+	 application: p('application.name'),
+	
+	 // DateTime of the log
+	 dateTimeStamp: now()  as String {format: "dd/MM/yyyy' 'HH:mm:ss"},
+	 
+	 // DateTime of the log
+	 (Status: vars.status) if(vars.status?),
+	 
+	 // Message or error
+	 (message: vars.logMessage) if(vars.logMessage?),
+ }]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="mule-common-logger-based-on-log-level"
+			doc:id="052398b0-944a-46b7-9993-fb72a2caf48c"
+			name="mule-common-logger-based-on-log-level" />
+		<remove-variable variableName="commonLogMsg"
+			doc:name="Remove commonLogMsg" />
+		<remove-variable variableName="logCategory"
+			doc:name="Reset logCategory" />
+	</sub-flow>
+	<sub-flow name="mule-common-logger-based-on-log-level"
+		doc:id="027eaaea-9b23-47cb-ae38-d94df9bb20f7">
+		<set-variable
+			value="#[if(vars.logCategory?) vars.logCategory else 'Info']"
+			doc:name="Set logCategory to default if not set"
+			doc:id="069c6d83-b4a3-4909-9019-a462682c4743"
+			variableName="logCategory" />
+		<logger level="INFO" doc:name="Logger - INFO" doc:id="0d275a3b-9bb0-425d-a2ec-34688703b05b" message="#[vars.logCategory]: #[vars.commonLogMsg]" />
+	</sub-flow>
+
+</mule>

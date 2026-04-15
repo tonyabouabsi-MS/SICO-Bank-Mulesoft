@@ -1,0 +1,33 @@
+# Environment specific properties
+environment:
+ name: "prod"
+ id: "34482e3c-64a7-4b31-976a-8165a169add0"
+  
+api:
+ name: "${application.name}-${environment.name}"
+ id: ""
+ version: "v1"
+
+http:
+  path: "/api/${api.name}/${api.version}/*"
+  host: "0.0.0.0"
+  port: "8081"
+  timeout: "99999999"
+
+https:
+  path: "/api/${api.name}/${api.version}/*"
+  host: "0.0.0.0"
+  port: "8081"
+  alias: "template"
+  pwdKeystore: "template"
+  pwdTruststore: "template"
+  keystorePath: "keystore/keystore.jks"
+  timeout: "99999999"
+
+database:
+  aws-dhb: 
+    host: "10.16.2.162"
+    port: "1433"
+    username: "apiuser"
+    password: "${secure::encrypt.password}"
+    databaseName: "DWH"

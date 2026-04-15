@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <http:listener-config name="s-sico-dw-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="${http.port}" />
+    </http:listener-config>
+    <apikit:config name="s-sico-dw-config" api="s-sico-dw.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<configuration-properties doc:name="Configuration properties" doc:id="0edca5ed-ca6c-402e-a559-4e853136ff57" file="environment/${mule.env}.yaml" />
+	<global-property doc:name="Global Property" doc:id="cc0952c6-03f1-4093-bcb9-4172eace8ce3" name="mule.env" value="devLocal" />
+	<configuration-properties doc:name="Configuration properties" doc:id="a2fd7bfa-5e55-4ffb-ab05-3f871c6c5164" file="environment\default-prop.yaml" />
+	<configuration-properties doc:name="Configuration properties" doc:id="c69e2ea7-7bab-4fe1-803f-63f3764b6054" file="properties\local\properties.yaml" />
+	<configuration doc:name="Configuration" doc:id="7ae8b899-fc60-4e81-b73c-5df284674d77" defaultErrorHandler-ref="api-global-error-handler" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="b375b8ac-b40b-4d58-b406-94c8bcf82544" file="secure/${mule.env}-secure.yaml" key="dwCredentials" >
+		<secure-properties:encrypt algorithm="Blowfish" mode="ECB" />
+	</secure-properties:config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="e170659e-85ee-4dc4-a100-5c2846fe130d" >
+		<db:mssql-connection host="${database.aws-dhb.host}" port="${database.aws-dhb.port}" user="${database.aws-dhb.username}" password="${database.aws-dhb.password}" databaseName="${database.aws-dhb.databaseName}"/>
+	</db:config>
+</mule>

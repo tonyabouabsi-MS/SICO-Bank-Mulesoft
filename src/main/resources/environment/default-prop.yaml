@@ -1,0 +1,6 @@
+# Default properties (non environment-specific)
+application:
+    name: s-sico-dw
+    instance: ${domain}
+    version: ${pom.version}
+    majorVersion: ${pom.application.majorVersion}

@@ -1,0 +1,13 @@
+#%RAML 1.0
+title: s-sico-dw
+
+uses:
+  rt: /library/resourceTypes.raml
+
+/getRecords:
+  type:
+    rt.get-record:
+      addDescription: Getting the requester Data from Data Warehouse
+      queryParams: {queryString}
+      getResponseExample: !include /examples/dw-example.raml
+      getResponseType: array
