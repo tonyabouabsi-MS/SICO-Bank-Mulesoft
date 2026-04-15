@@ -18,13 +18,13 @@ jobs:
           distribution: 'zulu'
           cache: 'maven'
 
-      - name: Deploy to CloudHub
+        - name: Deploy to CloudHub
         env:
           C_ID: "${{ secrets.ANYPOINT_CLIENT_ID }}"
           C_SECRET: "${{ secrets.ANYPOINT_CLIENT_SECRET }}"
         run: |
-          mvn -X -e clean deploy -DmuleDeploy \
+          mvn clean deploy -DmuleDeploy \
           -Danypoint.client.id=$C_ID \
           -Danypoint.client.secret=$C_SECRET \
-          -Dserver.anypoint-exchange-v3.username=~~~Client~~~ \
-          -Dserver.anypoint-exchange-v3.password=$C_ID~?~$C_SECRET
+          "-Dserver.anypoint-exchange-v3.username=~~~Client~~~" \
+          "-Dserver.anypoint-exchange-v3.password=$C_ID~?~$C_SECRET"
