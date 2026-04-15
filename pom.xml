@@ -43,8 +43,9 @@
 	                    <applicationName>s-sico-dw-dev</applicationName>
 	                    <replicas>1</replicas>
 	                    <vCores>0.1</vCores>
-	                    <username>TonyAbouAbsi-SICO</username>
-	                    <password>TonyAbouAbsi#1</password>
+	                    <connectedAppClientId>50B22538E923422ab42510518F365f3C</connectedAppClientId>
+					    <connectedAppClientSecret>bace13a4bf1b4977989919bc4ee91066</connectedAppClientSecret>
+					    <connectedAppGrantType>client_credentials</connectedAppGrantType>
                 	</cloudhub2Deployment>
 					<classifier>mule-application</classifier>
 				</configuration>

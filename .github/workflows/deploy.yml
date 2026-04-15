@@ -18,11 +18,11 @@ jobs:
           distribution: 'zulu'
           cache: 'maven'
 
-      - name: Deploy to CloudHub
+    - name: Deploy to CloudHub
         env:
-          USER: ${{ secrets.ANYPOINT_USERNAME }}
-          PASS: ${{ secrets.ANYPOINT_PASSWORD }}
+          C_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+          C_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
         run: |
           mvn clean deploy -DmuleDeploy \
-          -Danypoint.username=$USER \
-          -Danypoint.password=$PASS
+          -Danypoint.client.id=$C_ID \
+          -Danypoint.client.secret=$C_SECRET
