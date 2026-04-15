@@ -1,0 +1,28 @@
+name: Deploy Mule App to CloudHub
+
+on:
+  push:
+    branches: [ main ] # This means: "Run this every time I push to the main branch"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+          cache: 'maven'
+
+      - name: Deploy to CloudHub
+        env:
+          USER: ${{ secrets.ANYPOINT_USERNAME }}
+          PASS: ${{ secrets.ANYPOINT_PASSWORD }}
+        run: |
+          mvn clean deploy -DmuleDeploy \
+          -Danypoint.username=$USER \
+          -Danypoint.password=$PASS
