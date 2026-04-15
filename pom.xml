@@ -4,7 +4,7 @@
 
 	<groupId>e0b34949-b72f-4bc8-abb1-70e88409ea0f</groupId>
 	<artifactId>s-sico-dw</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<packaging>mule-application</packaging>
 
 	<name>s-sico-dw</name>
