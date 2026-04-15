@@ -1,4 +1,4 @@
-name: Deploy Mule App to CloudHub
+name: Deploy Mule App to CloudHub TAA
 
 on:
   push:
