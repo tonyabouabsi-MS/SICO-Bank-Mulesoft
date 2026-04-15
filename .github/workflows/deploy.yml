@@ -2,7 +2,7 @@ name: Deploy Mule App to CloudHub
 
 on:
   push:
-    branches: [ main ] # This means: "Run this every time I push to the main branch"
+    branches: [ main ]
 
 jobs:
   build-and-deploy:
@@ -18,7 +18,7 @@ jobs:
           distribution: 'zulu'
           cache: 'maven'
 
-    - name: Deploy to CloudHub
+      - name: Deploy to CloudHub
         env:
           C_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
           C_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
