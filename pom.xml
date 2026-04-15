@@ -45,8 +45,8 @@
 	                    <replicas>1</replicas>
 	                    <vCores>0.1</vCores>
 	                    <businessGroupId>e0b34949-b72f-4bc8-abb1-70e88409ea0f</businessGroupId>
-	                    <connectedAppClientId>50B22538E923422ab42510518F365f3C</connectedAppClientId>
-					    <connectedAppClientSecret>bace13a4bf1b4977989919bc4ee91066</connectedAppClientSecret>
+	                    <connectedAppClientId>1adf81123abd488c91128724e53ad17c</connectedAppClientId>
+					    <connectedAppClientSecret>f146a6a398724f3291028372387bC6d2</connectedAppClientSecret>
 					    <connectedAppGrantType>client_credentials</connectedAppGrantType>
                 	</cloudhub2Deployment>
 					<classifier>mule-application</classifier>
