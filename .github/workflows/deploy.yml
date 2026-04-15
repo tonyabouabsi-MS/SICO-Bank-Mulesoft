@@ -23,7 +23,7 @@ jobs:
           C_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
           C_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
         run: |
-          mvn clean deploy -DmuleDeploy \
+          mvn -X -e clean deploy -DmuleDeploy \
           -Danypoint.client.id=$C_ID \
           -Danypoint.client.secret=$C_SECRET \
           -Dserver.anypoint-exchange-v3.username=~~~Client~~~ \
