@@ -1,4 +1,4 @@
-name: Deploy Mule App to CloudHub TAA
+name: Deploy Mule App to CloudHub TAA _ v1
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
           distribution: 'zulu'
           cache: 'maven'
 
-        - name: Deploy to CloudHub
+      - name: Deploy to CloudHub
         env:
           C_ID: "${{ secrets.ANYPOINT_CLIENT_ID }}"
           C_SECRET: "${{ secrets.ANYPOINT_CLIENT_SECRET }}"
