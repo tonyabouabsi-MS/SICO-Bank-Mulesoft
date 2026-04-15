@@ -25,4 +25,6 @@ jobs:
         run: |
           mvn clean deploy -DmuleDeploy \
           -Danypoint.client.id=$C_ID \
-          -Danypoint.client.secret=$C_SECRET
+          -Danypoint.client.secret=$C_SECRET \
+          -Dserver.anypoint-exchange-v3.username=~~~Client~~~ \
+          -Dserver.anypoint-exchange-v3.password=$C_ID~?~$C_SECRET
